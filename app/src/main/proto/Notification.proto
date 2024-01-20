@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option java_package = "com.jaanonim.you_owe_me_counter";
+option java_multiple_files = true;
+
+message NotificationRecord {
+  repeated Notification notifications = 1;
+}
+
+
+message Notification {
+  double value = 1;
+  string title = 2;
+  string  text = 3;
+  int64 timestamp = 4;
+}
