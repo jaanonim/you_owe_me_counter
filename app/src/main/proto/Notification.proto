@@ -13,4 +13,5 @@ message Notification {
   string title = 2;
   string  text = 3;
   int64 timestamp = 4;
+  int32 tab = 5;
 }

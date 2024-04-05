@@ -65,40 +65,47 @@ class NotificationListener : NotificationListenerService() {
     fun sendNotification(text: String, timestamp: Long) {
 
 
-        val replyLabel = "Title"
-        val remoteInput: RemoteInput = RemoteInput.Builder(KEY_TEXT_REPLY).run {
-            setLabel(replyLabel)
-            build()
-        }
-
-        val resultIntent = Intent(applicationContext, NotificationReceiver::class.java)
-        resultIntent.putExtra("text", text)
-        resultIntent.putExtra("timestamp", timestamp)
-        val replyPendingIntent: PendingIntent =
-            PendingIntent.getBroadcast(
-                applicationContext,
-                0,
-                resultIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT
-            )
-
-        val action: NotificationCompat.Action =
-            NotificationCompat.Action.Builder(
-                R.mipmap.ic_launcher,
-                "Remember", replyPendingIntent
-            )
-                .addRemoteInput(remoteInput)
-                .build()
-
         val notification: Notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("New Payment Notification")
             .setContentText(text)
-            .addAction(action)
+            .setSilent(true)
+            .addAction(buildAction("You own me", text, timestamp, 0))
+            .addAction(buildAction("I own you", text, timestamp, 1))
             .build()
         with(NotificationManagerCompat.from(this)) {
             notify(NOTIFICATION_ID, notification)
         }
+    }
+
+    private fun buildAction(
+        title: String,
+        text: String,
+        timestamp: Long,
+        tab: Int
+    ): NotificationCompat.Action {
+        val remoteInput: RemoteInput = RemoteInput.Builder(KEY_TEXT_REPLY).run {
+            setLabel("Title")
+            build()
+        }
+
+        val intent =
+            Intent(applicationContext, NotificationReceiver::class.java)
+                .putExtra("text_yomc", text)
+                .putExtra("timestamp_yomc", timestamp)
+                .putExtra("tab_yomc", tab)
+
+        val replyPendingIntent: PendingIntent =
+            PendingIntent.getBroadcast(
+                applicationContext,
+                tab,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            )
+        return NotificationCompat.Action.Builder(
+            R.mipmap.ic_launcher,
+            title, replyPendingIntent
+        ).addRemoteInput(remoteInput).build()
     }
 }
 

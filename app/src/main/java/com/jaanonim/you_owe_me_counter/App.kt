@@ -1,7 +1,10 @@
 package com.jaanonim.you_owe_me_counter
 
 import android.content.Intent
+import android.os.Build
 import android.util.Log
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,12 +27,16 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,6 +48,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App() {
@@ -48,13 +56,15 @@ fun App() {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val openAddDialog = remember { mutableStateOf(false) }
     val openClearDialog = remember { mutableStateOf(false) }
-    val total =
-        context.notificationRecord.data.collectAsState(initial = null).value?.let { runBlocking { context.notificationRecord.data.first().notificationsList.toList() } }
-            .let {
-                it?.let { it1 ->
-                    it1.map { it.value }.sum()
-                }
-            }
+    var currentTab by remember { mutableIntStateOf(0) }
+
+    val records =
+        context.notificationRecord.data.collectAsState(initial = null).value?.let {
+            runBlocking { context.notificationRecord.data.first().notificationsList.toList() }
+        }.let {
+            it?.filter { it.tab == currentTab }
+        }
+    val total = records?.sumOf { it.value } ?: 0.0
 
 
 
@@ -122,6 +132,7 @@ fun App() {
                                                                     .setText("Custom")
                                                                     .setValue(value.toDouble())
                                                                     .setTimestamp(System.currentTimeMillis())
+                                                                    .setTab(currentTab)
                                                                     .build()
                                                             ).build()
                                                         }
@@ -175,6 +186,22 @@ fun App() {
                                         contentDescription = "Share total",
                                     )
                                 }
+                                IconButton(onClick = {
+                                    if (records == null) {
+                                        Toast.makeText(
+                                            context,
+                                            "Nothing to export.",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        return@IconButton
+                                    }
+                                    exportAndShare(records, context)
+                                }) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.baseline_table_chart_24),
+                                        contentDescription = "Export to CSV",
+                                    )
+                                }
                             }
                             Row() {
                                 Text(
@@ -195,7 +222,7 @@ fun App() {
                 )
             },
         ) { innerPadding ->
-            MainContent(innerPadding)
+            MainContent(innerPadding, currentTab) { currentTab = it }
         }
     })
 }
