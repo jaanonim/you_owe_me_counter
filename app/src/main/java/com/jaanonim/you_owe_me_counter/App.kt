@@ -160,7 +160,13 @@ fun App() {
                                                     openClearDialog.value = false
                                                     runBlocking {
                                                         context.notificationRecord.updateData { r ->
-                                                            r.toBuilder().clear().build()
+                                                            val builder = r.toBuilder();
+                                                            for (i in builder.notificationsList.indices.reversed()) {
+                                                                if (builder.notificationsList[i].tab == currentTab) {
+                                                                    builder.removeNotifications(i)
+                                                                }
+                                                            }
+                                                            builder.build()
                                                         }
                                                     }
                                                 }
