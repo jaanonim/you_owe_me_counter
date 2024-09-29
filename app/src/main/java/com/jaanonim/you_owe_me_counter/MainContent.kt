@@ -47,23 +47,55 @@ fun MainContent(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            notificationList?.reversed()?.filter { it.tab == currentTab }.let {
-                it?.let { it1 ->
-                    items(
-                        it1.count()
-                    ) { index ->
-                        ListElement(
-                            it[index]
-                        ) {
-                            runBlocking {
-                                context.notificationRecord.updateData { r ->
-                                    r.toBuilder().removeNotifications(index).build()
+            notificationList?.filter { it.tab == currentTab }?.sortedBy { it.timestamp }?.reversed()
+                .let {
+                    it?.let { it1 ->
+                        items(
+                            it1.count()
+                        ) { index ->
+                            ListElement(
+                                it[index],
+                                onRemove = { current ->
+                                    runBlocking {
+                                        context.notificationRecord.updateData { r ->
+                                            val builder = r.toBuilder()
+                                            for (i in builder.notificationsList.indices.reversed()) {
+                                                if (builder.notificationsList[i] == current) {
+                                                    builder.removeNotifications(i)
+                                                    break
+                                                }
+                                            }
+                                            builder.build()
+                                        }
+                                    }
+                                },
+                                onMove = { current ->
+                                    runBlocking {
+                                        context.notificationRecord.updateData { r ->
+                                            val builder = r.toBuilder()
+                                            for (i in builder.notificationsList.indices.reversed()) {
+                                                if (builder.notificationsList[i] == current) {
+                                                    builder.removeNotifications(i)
+                                                    builder.addNotifications(
+                                                        Notification.newBuilder()
+                                                            .setTitle(current.title)
+                                                            .setText(current.text)
+                                                            .setValue(current.value)
+                                                            .setTimestamp(current.timestamp)
+                                                            .setTab((currentTab + 1) % titles.size)
+                                                            .build()
+                                                    )
+                                                    break
+                                                }
+                                            }
+                                            builder.build()
+                                        }
+                                    }
                                 }
-                            }
+                            )
                         }
                     }
                 }
-            }
 
         }
     }

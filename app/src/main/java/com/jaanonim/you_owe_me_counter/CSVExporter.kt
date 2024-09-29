@@ -14,7 +14,7 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
 private const val FILE_PROVIDER_AUTHORITY = "com.jaanonim.you_owe_me_counter.fileprovider"
-private const val FILE_PROVIDER_NAME = "sexport.csv"
+private const val FILE_PROVIDER_NAME = "export.csv"
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun exportAndShare(data: List<Notification>, context: Context) {
