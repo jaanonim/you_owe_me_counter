@@ -28,7 +28,7 @@ fun MainContent(
     val notificationList =
         context.notificationRecord.data.collectAsState(initial = null).value?.let { runBlocking { context.notificationRecord.data.first().notificationsList.toList() } }
 
-    val titles = listOf("You owe me", "I owe you")
+    val titles = listOf("Your account", "My account")
 
     Column(
         modifier = Modifier

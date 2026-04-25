@@ -10,13 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.DismissValue
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDismissState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,7 +36,6 @@ import java.text.SimpleDateFormat
 
 
 @SuppressLint("DefaultLocale")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListElement(
     data: Notification,
@@ -45,32 +43,32 @@ fun ListElement(
     onMove: (Notification) -> Unit
 ) {
     val openDeleteDialog = remember { mutableStateOf(false) }
-    val dismissState = rememberDismissState()
+    val dismissState = rememberSwipeToDismissBoxState()
 
     SwipeToDismissBox(
         state = dismissState,
         backgroundContent = {
             val color by animateColorAsState(
                 when (dismissState.targetValue) {
-                    DismissValue.DismissedToEnd -> md_theme_light_secondary
-                    DismissValue.DismissedToStart -> md_theme_light_error
+                    SwipeToDismissBoxValue.EndToStart -> md_theme_light_error
+                    SwipeToDismissBoxValue.StartToEnd -> md_theme_light_secondary
                     else -> Color.Transparent
                 }, label = ""
             )
             val alignment = when (dismissState.targetValue) {
-                DismissValue.DismissedToEnd -> Alignment.CenterStart
-                DismissValue.DismissedToStart -> Alignment.CenterEnd
-                DismissValue.Default -> Alignment.Center
+                SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+                SwipeToDismissBoxValue.Settled -> Alignment.Center
             }
             val icon = when (dismissState.targetValue) {
-                DismissValue.DismissedToEnd -> Icons.AutoMirrored.Filled.ArrowForward
-                DismissValue.DismissedToStart -> Icons.Filled.Delete
-                DismissValue.Default -> Icons.Filled.Delete
+                SwipeToDismissBoxValue.StartToEnd -> Icons.AutoMirrored.Filled.ArrowForward
+                SwipeToDismissBoxValue.EndToStart -> Icons.Filled.Delete
+                SwipeToDismissBoxValue.Settled -> Icons.Filled.Delete
             }
             val contentDescription = when (dismissState.targetValue) {
-                DismissValue.DismissedToEnd -> "Delete"
-                DismissValue.DismissedToStart -> "Move"
-                DismissValue.Default -> ""
+                SwipeToDismissBoxValue.StartToEnd -> "Move"
+                SwipeToDismissBoxValue.EndToStart -> "Delete"
+                SwipeToDismissBoxValue.Settled -> ""
             }
 
             Box(
@@ -125,23 +123,23 @@ fun ListElement(
     }
 
     when (dismissState.currentValue) {
-        DismissValue.DismissedToStart -> {
+        SwipeToDismissBoxValue.EndToStart -> {
             openDeleteDialog.value = true
 
             LaunchedEffect(Unit) {
-                dismissState.snapTo(DismissValue.Default)
+                dismissState.snapTo(SwipeToDismissBoxValue.Settled)
             }
         }
 
-        DismissValue.DismissedToEnd -> {
+        SwipeToDismissBoxValue.StartToEnd -> {
             LaunchedEffect(Unit) {
-                dismissState.snapTo(DismissValue.Default)
+                dismissState.snapTo(SwipeToDismissBoxValue.Settled)
                 onMove(data)
             }
 
         }
 
-        DismissValue.Default -> {}
+        SwipeToDismissBoxValue.Settled -> {}
     }
 }
 

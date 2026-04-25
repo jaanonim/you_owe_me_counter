@@ -70,8 +70,8 @@ class NotificationListener : NotificationListenerService() {
             .setContentTitle("New Payment Notification")
             .setContentText(text)
             .setSilent(true)
-            .addAction(buildAction("You own me", text, timestamp, 0))
-            .addAction(buildAction("I own you", text, timestamp, 1))
+            .addAction(buildAction("Your account", text, timestamp, 0))
+            .addAction(buildAction("My account", text, timestamp, 1))
             .build()
         with(NotificationManagerCompat.from(this)) {
             notify(NOTIFICATION_ID, notification)
